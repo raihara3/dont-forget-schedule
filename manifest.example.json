@@ -3,17 +3,10 @@
   "name": "Don't Forget Schedule",
   "version": "1.0.0",
   "description": "Google Calendar notifications that you won't miss",
-  "permissions": [
-    "identity",
-    "storage",
-    "alarms",
-    "notifications"
-  ],
+  "permissions": ["identity", "storage", "alarms"],
   "oauth2": {
     "client_id": "YOUR_CLIENT_ID.apps.googleusercontent.com",
-    "scopes": [
-      "https://www.googleapis.com/auth/calendar.readonly"
-    ]
+    "scopes": ["https://www.googleapis.com/auth/calendar.readonly"]
   },
   "background": {
     "service_worker": "background.js"
