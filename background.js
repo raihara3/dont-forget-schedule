@@ -24,9 +24,25 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-chrome.alarms.onAlarm.addListener((alarm) => {
+chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === ALARM_NAME) {
     checkUpcomingEvents();
+    return;
+  }
+
+  if (alarm.name.startsWith('reminder-')) {
+    const { scheduledReminders = {} } = await chrome.storage.local.get(['scheduledReminders']);
+    const eventData = scheduledReminders[alarm.name];
+    if (eventData) {
+      showNotification({
+        id: alarm.name,
+        title: eventData.title,
+        startTime: eventData.startTime,
+        location: eventData.location
+      });
+      delete scheduledReminders[alarm.name];
+      await chrome.storage.local.set({ scheduledReminders });
+    }
   }
 });
 
@@ -72,6 +88,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     getUpcomingEventsForPopup()
       .then((events) => sendResponse({ success: true, events }))
       .catch((error) => sendResponse({ success: false, error: error.message }));
+    return true;
+  }
+
+  if (message.action === 'scheduleReminder') {
+    scheduleOneMinuteReminder(message.event);
+    sendResponse({ success: true });
     return true;
   }
 });
@@ -278,7 +300,8 @@ function showNotification(event) {
   const params = new URLSearchParams({
     title: event.title,
     time: timeString,
-    location: event.location || ''
+    location: event.location || '',
+    startTime: event.startTime
   });
 
   const notificationUrl = chrome.runtime.getURL(`notification.html?${params.toString()}`);
@@ -289,5 +312,30 @@ function showNotification(event) {
     width: 550,
     height: 450,
     focused: true
+  });
+}
+
+async function scheduleOneMinuteReminder(event) {
+  const eventStartTime = new Date(event.startTime).getTime();
+  const reminderTime = eventStartTime - 60000;
+  const now = Date.now();
+
+  if (reminderTime <= now) {
+    return;
+  }
+
+  const alarmName = `reminder-${Date.now()}`;
+  const delayInMinutes = (reminderTime - now) / 60000;
+
+  const { scheduledReminders = {} } = await chrome.storage.local.get(['scheduledReminders']);
+  scheduledReminders[alarmName] = {
+    title: event.title,
+    startTime: event.startTime,
+    location: event.location || ''
+  };
+  await chrome.storage.local.set({ scheduledReminders });
+
+  chrome.alarms.create(alarmName, {
+    delayInMinutes: delayInMinutes
   });
 }

@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const title = params.get('title') || 'Event';
   const time = params.get('time') || '';
   const location = params.get('location') || '';
+  const startTime = params.get('startTime') || '';
 
   document.getElementById('event-title').textContent = title;
   document.getElementById('time-badge').textContent = time ? `${time} start` : 'Starting soon';
@@ -34,6 +35,35 @@ document.addEventListener('DOMContentLoaded', () => {
     audio.pause();
     window.close();
   });
+
+  const remindLaterButton = document.getElementById('remind-later');
+
+  if (startTime) {
+    const eventStartTime = new Date(startTime).getTime();
+    const now = Date.now();
+    const timeUntilOneMinuteBefore = eventStartTime - 60000 - now;
+
+    if (timeUntilOneMinuteBefore <= 0) {
+      remindLaterButton.style.display = 'none';
+    } else {
+      remindLaterButton.addEventListener('click', () => {
+        audio.pause();
+        chrome.runtime.sendMessage({
+          action: 'scheduleReminder',
+          event: {
+            title: title,
+            time: time,
+            location: location,
+            startTime: startTime
+          }
+        });
+        window.close();
+      });
+    }
+  } else {
+    remindLaterButton.disabled = true;
+    remindLaterButton.textContent = 'Unavailable';
+  }
 
   setTimeout(() => {
     audio.pause();
