@@ -32,12 +32,14 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'testNotification') {
-    showNotification({
-      id: 'test-' + Date.now(),
-      title: 'Test Event',
-      startTime: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
-      isTest: true
-    });
+    setTimeout(() => {
+      showNotification({
+        id: 'test-' + Date.now(),
+        title: 'Test Event',
+        startTime: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+        isTest: true
+      });
+    }, 5000);
     sendResponse({ success: true });
     return true;
   }
@@ -273,27 +275,19 @@ function showNotification(event) {
     minute: '2-digit'
   });
 
-  const notificationId = `event-${event.id}-${Date.now()}`;
-
-  let message = `${timeString} start`;
-  if (event.location) {
-    message += `\nLocation: ${event.location}`;
-  }
-  if (event.isTest) {
-    message = `This is a test notification\n${message}`;
-  }
-
-  chrome.notifications.create(notificationId, {
-    type: 'basic',
-    iconUrl: 'icons/icon128.png',
+  const params = new URLSearchParams({
     title: event.title,
-    message: message,
-    priority: 2,
-    requireInteraction: true
+    time: timeString,
+    location: event.location || ''
+  });
+
+  const notificationUrl = chrome.runtime.getURL(`notification.html?${params.toString()}`);
+
+  chrome.windows.create({
+    url: notificationUrl,
+    type: 'popup',
+    width: 550,
+    height: 450,
+    focused: true
   });
 }
-
-chrome.notifications.onClicked.addListener((notificationId) => {
-  chrome.notifications.clear(notificationId);
-  chrome.tabs.create({ url: 'https://calendar.google.com' });
-});

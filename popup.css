@@ -207,6 +207,13 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
+.action-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--color-gray-500);
+  text-align: center;
+}
+
 .logout-card {
   margin-top: 8px;
 }
@@ -271,9 +278,18 @@ body {
   text-align: center;
 }
 
-.footer-text {
-  font-size: 12px;
+.footer-credit {
+  font-size: 11px;
   color: var(--color-gray-400);
+}
+
+.footer-credit a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.footer-credit a:hover {
+  text-decoration: underline;
 }
 
 .toast {
