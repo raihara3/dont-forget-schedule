@@ -2,6 +2,8 @@
 
 Google Calendar notifications that you won't miss - a Chrome extension that ensures you never miss important events with attention-grabbing popup notifications and sound alerts.
 
+![Notification](image.png)
+
 ## Features
 
 - **Popup Notifications with Sound** - Eye-catching popup window with alarm sound that demands your attention
